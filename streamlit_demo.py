@@ -215,8 +215,7 @@ def graph_population_sex() : #성별에 따른 바 그래프
     male = population.iloc[0].values
     female = population.iloc[1].values
 
-    # figsize를 (가로, 세로) = (10, 10)으로 동일하게 설정
-    plt.figure(figsize=(10, 8))
+    fig = plt.figure(figsize=(8, 6.32))
 
     plt.bar([i - width/2 for i in x], male, width, label='남성', color='skyblue')
     plt.bar([i + width/2 for i in x], female, width, label='여성', color='pink')
@@ -238,13 +237,13 @@ def graph_population_sex() : #성별에 따른 바 그래프
             #남성 증감률
             male_change = ((male[i] - male[i-1]) / male[i-1]) * 100
             plt.text(i - width/2, male[i] + male.max() * 0.0002, 
-                    f'{male_change:+.2f}%\n{abs(male[i] - male[i-1])}명 감소', 
+                    f'{male_change:+.2f}%\n{abs(male[i] - male[i-1]):,.0f}명 감소', 
                     ha='center', va='bottom', fontsize=9, fontweight='bold', color='#2E86AB')
             
             #여성 증감률
             female_change = ((female[i] - female[i-1]) / female[i-1]) * 100
             plt.text(i + width/2, female[i] + female.max() * 0.0002, 
-                    f'{female_change:+.2f}%\n{abs(female[i] - female[i-1])}명 감소', 
+                    f'{female_change:+.2f}%\n{abs(female[i] - female[i-1]):,.0f}명 감소', 
                     ha='center', va='bottom', fontsize=9, fontweight='bold', color='#E91E63')
         
         #각 연도별 남녀 인구 차이 표기
@@ -266,20 +265,8 @@ def graph_population_sex() : #성별에 따른 바 그래프
                 bbox=dict(boxstyle='round,pad=0.5', facecolor='white', edgecolor=color, alpha=0.8),
                 color=color, fontweight='bold')
     plt.tight_layout()
-
-    cont1 = st.container()
-    cont2 = st.container()
-
-    with cont1 : 
-        st.pyplot(plt)
-    with cont2 :
-        st.markdown("<h5>그래프 설명</h5>", unsafe_allow_html=True)
-        st.markdown("**2020년과 2025년의 남녀 인구이다.** <br>", unsafe_allow_html=True)
-        st.caption("데이터 출처 : [국가데이터처](https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1BPA001&conn_path=I2)「장래인구추계」, 2072, 2025.11.05, 성 및 연령별 추계인구(1세별, 5세별) / 전국")
-        
-        with st.expander("원본 데이터 표 보기"):
-            st.dataframe(data)
-    plt.close()
+    
+    return fig, data
 
 def graph_population_age() : #연령에 따른 파이 그래프
     data = pd.read_csv("C:/Users/taehyeon/Desktop/2025-2/전공/데이터시각화/Project/연령.csv", encoding = "cp949")
@@ -294,7 +281,7 @@ def graph_population_age() : #연령에 따른 파이 그래프
     explode[max_age] = 0.1  # 최대값 돌출
     explode[min_age] = 0.1  # 최소값 돌출
 
-    # 파이 차트 생성 - figsize를 (10, 10)으로 동일하게 설정
+    # 파이 차트 생성
     fig, ax = plt.subplots(figsize=(10, 10))
 
     wedges, texts, autotexts = ax.pie(
@@ -304,7 +291,7 @@ def graph_population_age() : #연령에 따른 파이 그래프
         startangle=90,
         colors=colors,
         explode=explode,
-        textprops={'fontsize': 10},  # 레이블 폰트 크기
+        textprops={'fontsize': 10},
         pctdistance=0.85
     )
 
@@ -346,28 +333,48 @@ def graph_population_age() : #연령에 따른 파이 그래프
     ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(1, 1), fontsize=10)
 
     plt.tight_layout()
-
-    cont1 = st.container()
-    cont2 = st.container()
     
-    with cont1 :
-        st.pyplot(fig)
-    with cont2 :
-        st.markdown("<h5>그래프 설명</h5>", unsafe_allow_html=True)
-        st.markdown("**2025년의 연령대별 인구 비율이다.** <br>", unsafe_allow_html=True)
-        st.caption("데이터 출처 : [국가데이터처](https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1BPA001&conn_path=I2)「장래인구추계」, 2072, 2025.11.05, 성 및 연령별 추계인구(1세별, 5세별) / 전국")
-        
-        with st.expander("원본 데이터 표 보기"):
-            st.dataframe(data)
-    plt.close()
+    return fig, data
 
 def st_columns_SexAge() :
-    col1, col2 = st.columns([1, 1])
+    # 그래프 생성
+    fig_sex, data_sex = graph_population_sex()
+    fig_age, data_age = graph_population_age()
+    
+    # 그래프 컨테이너
+    graph_container = st.container()
+    with graph_container:
+        col1, col2 = st.columns([1, 1])
+        
+        with col1:
+            st.pyplot(fig_sex)
+            plt.close(fig_sex)
+        
+        with col2:
+            st.pyplot(fig_age)
+            plt.close(fig_age)
+    
+    # 설명 컨테이너
+    description_container = st.container()
+    with description_container:
+        col1, col2 = st.columns([1, 1])
+        
+        with col1:
+            st.markdown("<h5>그래프 설명</h5>", unsafe_allow_html=True)
+            st.markdown("**2020년과 2025년의 남녀 인구이다.** <br>", unsafe_allow_html=True)
+            st.caption("데이터 출처 : [국가데이터처](https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1BPA001&conn_path=I2)「장래인구추계」, 2072, 2025.11.05, 성 및 연령별 추계인구(1세별, 5세별) / 전국")
+            
+            with st.expander("원본 데이터 표 보기"):
+                st.dataframe(data_sex)
+        
+        with col2:
+            st.markdown("<h5>그래프 설명</h5>", unsafe_allow_html=True)
+            st.markdown("**2025년의 연령대별 인구 비율이다.** <br>", unsafe_allow_html=True)
+            st.caption("데이터 출처 : [국가데이터처](https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1BPA001&conn_path=I2)「장래인구추계」, 2072, 2025.11.05, 성 및 연령별 추계인구(1세별, 5세별) / 전국")
+            
+            with st.expander("원본 데이터 표 보기"):
+                st.dataframe(data_age)
 
-    with col1 :
-        graph_population_sex()
-    with col2 :
-        graph_population_age()
 apply_web_font()
 setting_matplotlib_font()
 st.set_page_config(layout="wide")
@@ -375,6 +382,10 @@ st.set_page_config(layout="wide")
 st.title("대한민국 총인구 대시보드")
 st.markdown("<h6>게시자 : 첨단IT학부 빅데이터전공 20223468 김태현</h6>", unsafe_allow_html=True)
 
-graph_population()
-st.divider()
-st_columns_SexAge()
+def main() :
+    graph_population()
+    st.divider()
+    st_columns_SexAge()
+
+if __name__ == "__main__" :
+    main()
