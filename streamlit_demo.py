@@ -7,6 +7,12 @@ import matplotlib.font_manager as fm
 import matplotlib.ticker as ticker
 from matplotlib import rc
 
+# --- (핵심 수정 1) ---
+# 스크립트 파일의 기본 경로를 맨 위에 한 번만 정의합니다.
+# 이제 모든 함수가 이 'base_dir' 변수를 사용할 수 있습니다.
+base_dir = os.path.dirname(__file__)
+# ---------------------
+
 def apply_web_font(): #Streamlit 웹에 Pretendard family 웹 폰트 적용
     #Pretendard @font-face CSS 구문
     comp_css = """
@@ -127,14 +133,15 @@ def apply_web_font(): #Streamlit 웹에 Pretendard family 웹 폰트 적용
     st.markdown(comp_css, unsafe_allow_html=True)
 
 def setting_matplotlib_font(): #Matplotlib 차트 이미지에 로컬 Pretendard 폰트 적용
-    # 현재 스크립트 파일(streamlit_demo.py)이 있는 폴더 경로
-    base_dir = os.path.dirname(__file__)
+    # --- (핵심 수정 2) ---
+    # base_dir 정의를 제거하고, 상단에 정의된 전역 'base_dir' 변수를 사용합니다.
+    # ---------------------
     
     # 폰트 파일 이름
     font_filename = 'Pretendard-Bold.ttf' 
     
     # 폰트 파일의 전체 경로 (base_dir와 폰트 파일 이름을 합침)
-    font_path = os.path.join(base_dir, font_filename)
+    font_path = os.path.join(base_dir, font_filename) # <-- 수정됨 (전역 base_dir 사용)
 
     # (중요) 폰트가 실제로 존재하는지 확인
     if not os.path.exists(font_path):
@@ -152,7 +159,11 @@ def setting_matplotlib_font(): #Matplotlib 차트 이미지에 로컬 Pretendard
     fm.fontManager.addfont(font_path)
 
 def graph_population() : #총인구수 그래프
-    data = pd.read_csv("C:/Users/taehyeon/Desktop/2025-2/전공/데이터시각화/Project/장래인구추계.csv", encoding="cp949")
+    # --- (핵심 수정 3) ---
+    # 모든 C:/... 경로를 os.path.join(base_dir, "파일명.csv")로 변경합니다.
+    csv_path = os.path.join(base_dir, "장래인구추계.csv") # <-- 수정됨
+    data = pd.read_csv(csv_path, encoding="cp949") # <-- 수정됨
+    # ---------------------
 
     years = data.columns[1:]
     population = data.iloc[0, 1:]
@@ -172,14 +183,14 @@ def graph_population() : #총인구수 그래프
     #최대치 연도 세로선
     plt.axvline(x = max_year, color = 'red', linestyle = ':', linewidth = 2, label = f'최대 인구 시점, {max_year}년')
     text_label = f"{max_population_value:,.0f}명"
-    plt.text(x=max_year + 0.2,                 #x좌표 (선에서 0.2년 옆)
-             y=max_population_value / 2,       #y좌표 (선의 중간쯤)
-             s=text_label,                     #표시할 텍스트
-             color='red',                      #텍스트 색상
+    plt.text(x=max_year + 0.2,            #x좌표 (선에서 0.2년 옆)
+             y=max_population_value / 2,    #y좌표 (선의 중간쯤)
+             s=text_label,                  #표시할 텍스트
+             color='red',                   #텍스트 색상
              fontsize=22,
-             rotation=270,                      #텍스트를 90도 회전
-             ha='left',                        #수평 정렬 (텍스트의 왼쪽을 x좌표에 맞춤)
-             va='center')                      #수직 정렬 (텍스트의 세로 중앙을 y좌표에 맞춤)          
+             rotation=270,                  #텍스트를 90도 회전
+             ha='left',                     #수평 정렬 (텍스트의 왼쪽을 x좌표에 맞춤)
+             va='center')                   #수직 정렬 (텍스트의 세로 중앙을 y좌표에 맞춤)           
     plt.legend()
     
     plt.xlabel("연도", fontsize = 12)
@@ -220,7 +231,8 @@ def graph_population() : #총인구수 그래프
     plt.close()
 
 def graph_population_sex() : #성별에 따른 바 그래프 
-    data = pd.read_csv("C:/Users/taehyeon/Desktop/2025-2/전공/데이터시각화/Project/성비.csv", encoding="cp949")
+    csv_path = os.path.join(base_dir, "성비.csv") # <-- 수정됨
+    data = pd.read_csv(csv_path, encoding="cp949") # <-- 수정됨
 
     years = data.columns[1:]
     population = data.iloc[0:, 1:3]
@@ -254,14 +266,14 @@ def graph_population_sex() : #성별에 따른 바 그래프
             #남성 증감률
             male_change = ((male[i] - male[i-1]) / male[i-1]) * 100
             plt.text(i - width/2, male[i] + male.max() * 0.0002, 
-                    f'{male_change:+.2f}%\n{abs(male[i] - male[i-1]):,.0f}명 감소', 
-                    ha='center', va='bottom', fontsize=9, fontweight='bold', color='#2E86AB')
+                     f'{male_change:+.2f}%\n{abs(male[i] - male[i-1]):,.0f}명 감소', 
+                     ha='center', va='bottom', fontsize=9, fontweight='bold', color='#2E86AB')
             
             #여성 증감률
             female_change = ((female[i] - female[i-1]) / female[i-1]) * 100
             plt.text(i + width/2, female[i] + female.max() * 0.0002, 
-                    f'{female_change:+.2f}%\n{abs(female[i] - female[i-1]):,.0f}명 감소', 
-                    ha='center', va='bottom', fontsize=9, fontweight='bold', color='#E91E63')
+                     f'{female_change:+.2f}%\n{abs(female[i] - female[i-1]):,.0f}명 감소', 
+                     ha='center', va='bottom', fontsize=9, fontweight='bold', color='#E91E63')
         
         #각 연도별 남녀 인구 차이 표기
         diff = male[i] - female[i]
@@ -278,15 +290,16 @@ def graph_population_sex() : #성별에 따른 바 그래프
             color = '#E91E63'
         
         plt.text(i, mid_y, text, 
-                ha='center', va='center', fontsize=8, 
-                bbox=dict(boxstyle='round,pad=0.5', facecolor='white', edgecolor=color, alpha=0.8),
-                color=color, fontweight='bold')
+                 ha='center', va='center', fontsize=8, 
+                 bbox=dict(boxstyle='round,pad=0.5', facecolor='white', edgecolor=color, alpha=0.8),
+                 color=color, fontweight='bold')
     plt.tight_layout()
     
     return fig, data
 
 def graph_population_age() : #연령에 따른 파이 그래프
-    data = pd.read_csv("C:/Users/taehyeon/Desktop/2025-2/전공/데이터시각화/Project/연령.csv", encoding="cp949")
+    csv_path = os.path.join(base_dir, "연령.csv") # <-- 수정됨
+    data = pd.read_csv(csv_path, encoding="cp949") # <-- 수정됨
 
     # 연령대별 그룹화
     youth = data[data["연령별"].isin(["0 - 4세", "5 - 9세", "10 - 14세"])]["2025"].sum()
@@ -381,8 +394,8 @@ def st_columns_SexAge() : #성별, 연령 통합 출력
                 st.dataframe(data_age)
 
 def graph_population_growrate() : #인구성장률
-    data_df = pd.read_csv("C:/Users/taehyeon/Desktop/2025-2/전공/데이터시각화/Project/인구성장률.csv", 
-                   header=None, encoding="cp949")
+    csv_path = os.path.join(base_dir, "인구성장률.csv") # <-- 수정됨
+    data_df = pd.read_csv(csv_path, header=None, encoding="cp949") # <-- 수정됨
     
     data = data_df.transpose()
     data.columns = data.iloc[0]
@@ -424,7 +437,7 @@ def graph_population_growrate() : #인구성장률
     ax.text(2025, value_2025 + 0.30, f'{value_2025:.2f}%',
             ha='center', va='center', fontsize=14,
             bbox=dict(boxstyle='round,pad=0.5', facecolor='white', 
-                     edgecolor=color, linewidth=2.5, alpha=0.95),
+                      edgecolor=color, linewidth=2.5, alpha=0.95),
             color=color, fontweight='bold')
 
     # 축 설정
@@ -462,8 +475,8 @@ def graph_population_growrate() : #인구성장률
     plt.close()
 
 def graph_fertility_rate(): #합계출산율
-    data_df = pd.read_csv("C:/Users/taehyeon/Desktop/2025-2/전공/데이터시각화/Project/합계출산율.csv", 
-                   header=None, encoding="cp949")
+    csv_path = os.path.join(base_dir, "합계출산율.csv") # <-- 수정됨
+    data_df = pd.read_csv(csv_path, header=None, encoding="cp949") # <-- 수정됨
     
     data = data_df.transpose()
     data.columns = data.iloc[0]
@@ -541,7 +554,8 @@ def graph_fertility_rate(): #합계출산율
     plt.close()
 
 def graph_ageing_index(): #고령화지수
-    data_df = pd.read_csv("C:/Users/taehyeon/Desktop/2025-2/전공/데이터시각화/Project/노령화지수_노년부양비.csv", header=None, encoding="cp949")
+    csv_path = os.path.join(base_dir, "노령화지수_노년부양비.csv") # <-- 수정됨
+    data_df = pd.read_csv(csv_path, header=None, encoding="cp949") # <-- 수정됨
     
     data = data_df.transpose()
     data.columns = data.iloc[0]
@@ -575,18 +589,18 @@ def graph_ageing_index(): #고령화지수
 
     # 2025년 포인트 강조
     ax1.plot(2025, value_ageing_2025, marker='o', markersize=15, 
-            color=color1, markeredgecolor='darkred', markeredgewidth=2, zorder=5)
+             color=color1, markeredgecolor='darkred', markeredgewidth=2, zorder=5)
 
     # 2025년 텍스트
     ax1.text(2025, value_ageing_2025 + 40, '2025년',
-            ha='center', va='center', fontsize=9,
-            color=color1, fontweight='bold')
+             ha='center', va='center', fontsize=9,
+             color=color1, fontweight='bold')
     
     ax1.text(2030, value_ageing_2025 - 30, f'{value_ageing_2025:.1f}',
-            ha='center', va='center', fontsize=14,
-            bbox=dict(boxstyle='round,pad=0.5', facecolor='white', 
-                     edgecolor=color1, linewidth=2.5, alpha=0.95),
-            color=color1, fontweight='bold')
+             ha='center', va='center', fontsize=14,
+             bbox=dict(boxstyle='round,pad=0.5', facecolor='white', 
+                       edgecolor=color1, linewidth=2.5, alpha=0.95),
+             color=color1, fontweight='bold')
 
     ax1.set_xlabel('연도', fontsize=13, fontweight='bold')
     ax1.set_ylabel('노령화지수', fontsize=13, fontweight='bold')
@@ -617,18 +631,18 @@ def graph_ageing_index(): #고령화지수
 
     # 2025년 포인트 강조
     ax2.plot(2025, value_dependency_2025, marker='o', markersize=15, 
-            color=color2, markeredgecolor='darkred', markeredgewidth=2, zorder=5)
+             color=color2, markeredgecolor='darkred', markeredgewidth=2, zorder=5)
 
     # 2025년 텍스트
     ax2.text(2025, value_dependency_2025 + 5, '2025년',
-            ha='center', va='center', fontsize=9,
-            color=color2, fontweight='bold')
+             ha='center', va='center', fontsize=9,
+             color=color2, fontweight='bold')
     
     ax2.text(2030, value_dependency_2025 - 5, f'{value_dependency_2025:.1f}',
-            ha='center', va='center', fontsize=14,
-            bbox=dict(boxstyle='round,pad=0.5', facecolor='white', 
-                     edgecolor=color2, linewidth=2.5, alpha=0.95),
-            color=color2, fontweight='bold')
+             ha='center', va='center', fontsize=14,
+             bbox=dict(boxstyle='round,pad=0.5', facecolor='white', 
+                       edgecolor=color2, linewidth=2.5, alpha=0.95),
+             color=color2, fontweight='bold')
 
     ax2.set_xlabel('연도', fontsize=13, fontweight='bold')
     ax2.set_ylabel('노년부양비', fontsize=13, fontweight='bold')
@@ -665,8 +679,8 @@ def graph_ageing_index(): #고령화지수
         st.dataframe(data_df)
 
 def graph_multicultural_furniture(): #다문화가정
-    data_df = pd.read_csv("C:/Users/taehyeon/Desktop/2025-2/전공/데이터시각화/Project/다문화가구.csv", 
-                          header=None, encoding="cp949")
+    csv_path = os.path.join(base_dir, "다문화가구.csv") # <-- 수정됨
+    data_df = pd.read_csv(csv_path, header=None, encoding="cp949") # <-- 수정됨
     
     data = data_df.transpose()
     data.columns = data.iloc[0]
@@ -698,7 +712,7 @@ def graph_multicultural_furniture(): #다문화가정
     ax.text(2024, value_2024 + 20000, f'{value_2024:,.0f}',
             ha='center', va='center', fontsize=12,
             bbox=dict(boxstyle='round,pad=0.5', facecolor='white', 
-                     edgecolor='#E91E63', linewidth=2.5, alpha=0.95),
+                      edgecolor='#E91E63', linewidth=2.5, alpha=0.95),
             color='#E91E63', fontweight='bold')
 
     # 축 설정
@@ -741,8 +755,8 @@ def graph_multicultural_furniture(): #다문화가정
     plt.close()
 
 def graph_alone_household(): #1인가구
-    data_df = pd.read_csv("C:/Users/taehyeon/Desktop/2025-2/전공/데이터시각화/Project/1인가구수.csv", 
-                          header=None, encoding="cp949")
+    csv_path = os.path.join(base_dir, "1인가구수.csv") # <-- 수정됨
+    data_df = pd.read_csv(csv_path, header=None, encoding="cp949") # <-- 수정됨
     
     data = data_df.transpose()
     data.columns = data.iloc[0]
@@ -784,7 +798,7 @@ def graph_alone_household(): #1인가구
     ax.text(2025, value_2025 - 700000, f'{value_2025:,.0f}',
             ha='center', va='center', fontsize=12,
             bbox=dict(boxstyle='round,pad=0.5', facecolor='white', 
-                     edgecolor=color, linewidth=2.5, alpha=0.95),
+                      edgecolor=color, linewidth=2.5, alpha=0.95),
             color=color, fontweight='bold')
 
     # 축 설정
@@ -812,8 +826,8 @@ def graph_alone_household(): #1인가구
     return fig, data_df
 
 def graph_alone_household_pie(): #1인가구 비율
-    data_df = pd.read_csv("C:/Users/taehyeon/Desktop/2025-2/전공/데이터시각화/Project/1인가구비중.csv", 
-                          header=None, encoding="cp949")
+    csv_path = os.path.join(base_dir, "1인가구비중.csv") # <-- 수정됨
+    data_df = pd.read_csv(csv_path, header=None, encoding="cp949") # <-- 수정됨
     
     data = data_df.transpose()
     data.columns = data.iloc[0]
