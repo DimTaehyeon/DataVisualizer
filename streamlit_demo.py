@@ -7,6 +7,9 @@ import matplotlib.font_manager as fm
 import matplotlib.ticker as ticker
 from matplotlib import rc
 
+# ------ 들어가며 -------
+# local path 에서 os를 통해 csv, font 파일들을 찾는 것은 AI의 도움을 받았습니다.
+
 # --- (핵심 수정 1) ---
 # 스크립트 파일의 기본 경로를 맨 위에 한 번만 정의합니다.
 # 이제 모든 함수가 이 'base_dir' 변수를 사용할 수 있습니다.
