@@ -6,7 +6,7 @@ import matplotlib.font_manager as fm
 import matplotlib.ticker as ticker
 from matplotlib import rc
 
-def apply_web_font(): #Streamlit 웹에 Pretendard 웹 폰트 적용
+def apply_web_font(): #Streamlit 웹에 Pretendard family 웹 폰트 적용
     #Pretendard @font-face CSS 구문
     comp_css = """
     <style>
@@ -195,10 +195,10 @@ def graph_population() : #총인구수 그래프
         #증감률 레이블 표시
         st.subheader("연도별 인구 수 변화")
         st.markdown("<h6>1960 ~ 2025</h6>",unsafe_allow_html=True)
-        st.markdown(f'<div class="decrease-label">{years[max_population_index]}년도 대비 약 {decrease_rate:.2f}% 감소 <br>↓ {format(decrease_value, ",")}명</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="decrease-label">{years[max_population_index]}년도 대비 약 {decrease_rate:.2f}% 감소 <br><h2>↓ {format(decrease_value, ",")}명</h2></div>', unsafe_allow_html=True)
         
         st.markdown("<h5>그래프 설명</h5>", unsafe_allow_html=True)
-        st.markdown("1960년부터 2025년까지 **국내에 상주하고 있는 외국인을 포함한 인구의 총합이다.** <br>argmax()함수를 이용하여 인구 수의 최대치인 시점을 찾고, axvline을 통해 해당 지점을 시각화하였다.", unsafe_allow_html=True)
+        st.markdown("1960년부터 2025년까지 **국내에 상주하고 있는 외국인을 포함한 인구의 총합이다.**\n2020년에 인구 수 최대치를 기록하고 현재 소폭 감소하였다.", unsafe_allow_html=True)
     with st.expander("원본 데이터 표 보기"):
         st.dataframe(data)
     plt.close()
@@ -220,6 +220,7 @@ def graph_population_sex() : #성별에 따른 바 그래프
     plt.bar([i - width/2 for i in x], male, width, label='남성', color='skyblue')
     plt.bar([i + width/2 for i in x], female, width, label='여성', color='pink')
 
+    plt.title('성별 인구 비율 (2020-2025)', fontsize=18, fontweight='bold', pad=20)
     plt.ylabel('인구수', fontsize=12)   
     plt.xticks(x, years)
     plt.legend()
@@ -269,74 +270,62 @@ def graph_population_sex() : #성별에 따른 바 그래프
     return fig, data
 
 def graph_population_age() : #연령에 따른 파이 그래프
-    data = pd.read_csv("C:/Users/taehyeon/Desktop/2025-2/전공/데이터시각화/Project/연령.csv", encoding = "cp949")
+    data = pd.read_csv("C:/Users/taehyeon/Desktop/2025-2/전공/데이터시각화/Project/연령.csv", encoding="cp949")
 
-    max_age = data["2025"].argmax()
-    min_age = data["2025"].argmin()
+    # 연령대별 그룹화
+    youth = data[data["연령별"].isin(["0 - 4세", "5 - 9세", "10 - 14세"])]["2025"].sum()
+    adult = data[data["연령별"].str.contains("15|20|25|30|35|40|45|50|55|60 - 64세")]["2025"].sum()
+    elderly = data[data["연령별"].str.contains("65|70|75|80|100")]["2025"].sum()
 
-    colors = plt.cm.Set3(range(len(data)))
+    # 새로운 데이터프레임 생성
+    age_groups = pd.DataFrame({
+        "연령층": ["유소년층\n(0~14세)", "청장년층\n(15~64세)", "노년층\n(65세 이상)"],
+        "인구": [youth, adult, elderly]
+    })
 
-    # explode 설정 (돌출 효과)
-    explode = [0] * len(data)
-    explode[max_age] = 0.1  # 최대값 돌출
-    explode[min_age] = 0.1  # 최소값 돌출
+    # 색상 설정 (노년층을 빨간색으로 강조)
+    colors = ['#A8D5BA', '#7EB6D5', '#FF6B6B']
+
+    # explode 설정 (노년층만 돌출)
+    explode = [0, 0, 0.15]
 
     # 파이 차트 생성
-    fig, ax = plt.subplots(figsize=(10, 10))
+    fig, ax = plt.subplots(figsize=(7, 7))
 
     wedges, texts, autotexts = ax.pie(
-        data["2025"].values, 
-        labels=data["연령별"].values,
+        age_groups["인구"].values,
+        labels=age_groups["연령층"].values,
         autopct='%1.1f%%',
         startangle=90,
         colors=colors,
         explode=explode,
-        textprops={'fontsize': 10},
+        textprops={'fontsize': 14},
         pctdistance=0.85
     )
 
-    # 가장 많은/적은 연령대 하이라이트
+    # 노년층 강조
     for i, (wedge, text, autotext) in enumerate(zip(wedges, texts, autotexts)):
-        if i == max_age:
-            wedge.set_edgecolor('red')
-            wedge.set_linewidth(3)
-            text.set_fontsize(13)
+        if i == 2:  # 노년층
+            wedge.set_edgecolor('#D32F2F')
+            wedge.set_linewidth(4)
+            text.set_fontsize(16)
             text.set_fontweight('bold')
-            text.set_color('red')
+            text.set_color('#D32F2F')
             autotext.set_color('white')
             autotext.set_fontweight('bold')
-            autotext.set_fontsize(11)
-        elif i == min_age:
-            wedge.set_edgecolor('blue')
-            wedge.set_linewidth(3)
-            text.set_fontsize(13)
-            text.set_fontweight('bold')
-            text.set_color('blue')
-            autotext.set_color('white')
-            autotext.set_fontweight('bold')
-            autotext.set_fontsize(11)
+            autotext.set_fontsize(14)
         else:
-            autotext.set_fontsize(9)
+            autotext.set_fontsize(12)
+            autotext.set_fontweight('bold')
 
     # 제목
-    plt.title('2025년 연령대별 인구 비율', fontsize=16, fontweight='bold', pad=20)
-
-    # 범례 추가
-    legend_elements = [
-        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='red', 
-                markersize=10, markeredgecolor='red', markeredgewidth=2,
-                label=f'최다: {data["연령별"].iloc[max_age]} ({data["2025"].iloc[max_age]:,}명)'),
-        plt.Line2D([0], [0], marker='o', color='w', markerfacecolor='blue', 
-                markersize=10, markeredgecolor='blue', markeredgewidth=2,
-                label=f'최소: {data["연령별"].iloc[min_age]} ({data["2025"].iloc[min_age]:,}명)')
-    ]
-    ax.legend(handles=legend_elements, loc='upper left', bbox_to_anchor=(1, 1), fontsize=10)
+    plt.title('연령층별 인구 비율 (2025)', fontsize=18, fontweight='bold', pad=20)
 
     plt.tight_layout()
     
     return fig, data
 
-def st_columns_SexAge() :
+def st_columns_SexAge() : #성별, 연령 통합 출력 
     # 그래프 생성
     fig_sex, data_sex = graph_population_sex()
     fig_age, data_age = graph_population_age()
@@ -344,7 +333,7 @@ def st_columns_SexAge() :
     # 그래프 컨테이너
     graph_container = st.container()
     with graph_container:
-        col1, col2 = st.columns([1, 1])
+        col1, col2 = st.columns([4, 2.95])
         
         with col1:
             st.pyplot(fig_sex)
@@ -357,11 +346,11 @@ def st_columns_SexAge() :
     # 설명 컨테이너
     description_container = st.container()
     with description_container:
-        col1, col2 = st.columns([1, 1])
+        col1, col2 = st.columns([4, 2.95])
         
         with col1:
             st.markdown("<h5>그래프 설명</h5>", unsafe_allow_html=True)
-            st.markdown("**2020년과 2025년의 남녀 인구이다.** <br>", unsafe_allow_html=True)
+            st.markdown("2020년과 2025년의 **남녀 인구이다.**<br>2020년에는 남성이 여성보다 15,155명 많았으나, 2025년에는 여성의 인구가 8,758명 더 많다.", unsafe_allow_html=True)
             st.caption("데이터 출처 : [국가데이터처](https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1BPA001&conn_path=I2)「장래인구추계」, 2072, 2025.11.05, 성 및 연령별 추계인구(1세별, 5세별) / 전국")
             
             with st.expander("원본 데이터 표 보기"):
@@ -369,11 +358,558 @@ def st_columns_SexAge() :
         
         with col2:
             st.markdown("<h5>그래프 설명</h5>", unsafe_allow_html=True)
-            st.markdown("**2025년의 연령대별 인구 비율이다.** <br>", unsafe_allow_html=True)
+            st.markdown("**2025년의 연령대별 인구 비율이다.**<br>현재 65세 이상의 노년층이 전체 인구의 20.4%로, 초고령 사회임을 확인 가능하다.", unsafe_allow_html=True)
             st.caption("데이터 출처 : [국가데이터처](https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1BPA001&conn_path=I2)「장래인구추계」, 2072, 2025.11.05, 성 및 연령별 추계인구(1세별, 5세별) / 전국")
             
             with st.expander("원본 데이터 표 보기"):
                 st.dataframe(data_age)
+
+def graph_population_growrate() : #인구성장률
+    data_df = pd.read_csv("C:/Users/taehyeon/Desktop/2025-2/전공/데이터시각화/Project/인구성장률.csv", 
+                   header=None, encoding="cp949")
+    
+    data = data_df.transpose()
+    data.columns = data.iloc[0]
+    data = data.drop(data.index[0])
+    data = data.reset_index(drop=True)
+
+    # 연도를 정수형으로 변환
+    data["연도"] = data["연도"].astype(float).astype(int)
+    data["인구성장률"] = data["인구성장률"].astype(float)
+
+    # 5년 단위로 필터링 (1960, 1965, 1970, ..., 2025)
+    data_5year = data[data["연도"] % 5 == 0]
+
+    # 2025년 데이터 찾기
+    year_2025 = data[data["연도"] == 2025]
+    value_2025 = year_2025["인구성장률"].values[0]
+
+    # color 변수 설정
+    color = '#E91E63'
+
+    # 그래프 그리기
+    fig, ax = plt.subplots(figsize=(12, 6))
+    
+    # 선 그래프
+    ax.plot(data_5year["연도"], data_5year["인구성장률"], 
+            marker='o', linewidth=2.5, markersize=8, 
+            color='#1976D2', markerfacecolor='#64B5F6', markeredgewidth=1.5)
+
+    # 2025년 포인트 강조
+    ax.plot(2025, value_2025, marker='o', markersize=15, 
+            color=color, markeredgecolor='darkred', markeredgewidth=2, zorder=5)
+
+    # 2025년 텍스트 - 위쪽 (테두리 없음)
+    ax.text(2025, value_2025 + 0.50, '2025년',
+            ha='center', va='center', fontsize=9,
+            color=color, fontweight='bold')
+    
+    # 2025년 값 박스 - 아래쪽 (큰 폰트, bbox 있음)
+    ax.text(2025, value_2025 + 0.30, f'{value_2025:.2f}%',
+            ha='center', va='center', fontsize=14,
+            bbox=dict(boxstyle='round,pad=0.5', facecolor='white', 
+                     edgecolor=color, linewidth=2.5, alpha=0.95),
+            color=color, fontweight='bold')
+
+    # 축 설정
+    ax.set_xlabel('연도', fontsize=13, fontweight='bold')
+    ax.set_ylabel('인구성장률 (%)', fontsize=13, fontweight='bold')
+    ax.set_title('인구성장률 변화 (1960-2025)', fontsize=16, fontweight='bold', pad=20)
+    
+    # x축 5년 단위로 강제 설정
+    years = list(range(1960, 2030, 5))
+    ax.set_xticks(years)
+    ax.set_xticklabels(years, rotation=45, ha='right')
+    
+    # 그리드 설정
+    ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.8)
+    ax.set_axisbelow(True)
+    
+    # 배경색 설정
+    ax.set_facecolor('#F8F9FA')
+    
+    plt.tight_layout()
+
+    col1, col2 = st.columns([1.3,3])
+    with col1 :
+        st.subheader("연도별 인구 수 변화")
+        st.markdown("<h6>1960 ~ 2025</h6>",unsafe_allow_html=True)
+        st.markdown("<h5>그래프 설명</h5>", unsafe_allow_html=True)
+        st.markdown("**인구성장률은 전년 대비 추계인구의 증감률이다.**<br>2021년 인구성장률 -0.13을 기록하며 마이너스 성장대로 전환했다.", unsafe_allow_html=True)
+        with st.expander("원본 데이터 표 보기"):
+            st.dataframe(data_df)
+    with col2 :
+        st.pyplot(fig)
+        st.caption("데이터 출처 : [국가데이터처](https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1BPA002&conn_path=I2)「장래인구추계」, 2072, 2025.11.14, 주요 인구지표(성비,인구성장률,인구구조,부양비 등) / 전국")
+
+    
+    plt.close()
+
+def graph_fertility_rate(): #합계출산율
+    data_df = pd.read_csv("C:/Users/taehyeon/Desktop/2025-2/전공/데이터시각화/Project/합계출산율.csv", 
+                   header=None, encoding="cp949")
+    
+    data = data_df.transpose()
+    data.columns = data.iloc[0]
+    data = data.drop(data.index[0])
+    data = data.reset_index(drop=True)
+
+    # 연도를 정수형으로 변환
+    data["연도"] = data["연도"].astype(float).astype(int)
+    data["합계출산율"] = data["합계출산율"].astype(float)
+
+    # 5년 단위로 필터링 (1970, 1975, 1980, ..., 2025)
+    data_5year = data[data["연도"] % 5 == 0]
+
+    # 2025년 데이터 찾기
+    year_2025 = data[data["연도"] == 2025]
+    value_2025 = year_2025["합계출산율"].values[0]
+
+    # color 변수 설정
+    color = '#E91E63'
+
+    # 그래프 그리기
+    fig, ax = plt.subplots(figsize=(12, 6))
+    
+    # 선 그래프
+    ax.plot(data_5year["연도"], data_5year["합계출산율"], 
+            marker='o', linewidth=2.5, markersize=8, 
+            color='#1976D2', markerfacecolor='#64B5F6', markeredgewidth=1.5)
+
+    # 2024년 수직선 추가 (잠정치 표시)
+    ax.axvline(x=2024, color='orange', linestyle='--', linewidth=2, alpha=0.7, label='잠정치')
+    
+    # 잠정치 영역 음영 처리
+    ax.axvspan(2024, 2026, alpha=0.1, color='orange')
+
+    # 2025년 포인트 강조
+    ax.plot(2025, value_2025, marker='o', markersize=15, 
+            color=color, markeredgecolor='darkred', markeredgewidth=2, zorder=5)
+
+    # 축 설정
+    ax.set_xlabel('연도', fontsize=13, fontweight='bold')
+    ax.set_ylabel('합계출산율 (명)', fontsize=13, fontweight='bold')
+    ax.set_title('합계출산율 변화 (1970-2025)', fontsize=16, fontweight='bold', pad=20)
+    
+    # x축 5년 단위로 강제 설정
+    years = list(range(1970, 2030, 5))
+    ax.set_xticks(years)
+    ax.set_xticklabels(years, rotation=45, ha='right')
+    ax.set_xlim(1970, 2026)
+
+    # 그리드 설정
+    ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.8)
+    ax.set_axisbelow(True)
+    
+    # 배경색 설정
+    ax.set_facecolor('#F8F9FA')
+    
+    # 범례 추가
+    ax.legend(loc='upper right', fontsize=10)
+    
+    plt.tight_layout()
+
+    col1, col2 = st.columns([3, 1])
+    with col2:
+        st.subheader("연도별 합계출산율 변화")
+        st.markdown(f'<div class="decrease-label";>OECD 합계출산율 평균 대비  <br><h2>↓ {1.51 - value_2025}명 낮음</h2></div>', unsafe_allow_html=True)
+        st.markdown("<h6>1970 ~ 2025</h6>", unsafe_allow_html=True)
+        st.markdown("<h5>그래프 설명</h5>", unsafe_allow_html=True)
+        st.markdown(f"**여성 1명이 평생 낳을 것으로 예상되는 평균 출생아 수**를 나타낸다. <br>인구를 현재 수준으로 유지할 수 있는 합계출산율은 2.1명이며, **현재 이보다 {2.1 - value_2025:.2f}명 낮은 {value_2025}명을 기록하고 있다.**", unsafe_allow_html=True)
+    with col1:
+        st.pyplot(fig)
+        st.caption("데이터 출처 : [국가데이터처](https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1BPA101&conn_path=I2)「장래인구추계」, 2072, 2025.11.14, 장래 합계출산율 / 전국")
+    with st.expander("원본 데이터 표 보기"):
+        st.dataframe(data_df)
+
+    plt.close()
+
+def graph_ageing_index(): #고령화지수
+    data_df = pd.read_csv("C:/Users/taehyeon/Desktop/2025-2/전공/데이터시각화/Project/노령화지수_노년부양비.csv", header=None, encoding="cp949")
+    
+    data = data_df.transpose()
+    data.columns = data.iloc[0]
+    data = data.drop(data.index[0])
+    data = data.reset_index(drop=True)
+
+    # 데이터 타입 변환
+    data["연도"] = data["연도"].astype(float).astype(int)
+    data["노령화지수"] = data["노령화지수"].astype(float)
+    data["노년부양비"] = data["노년부양비"].astype(float)
+
+    # 5년 단위로 필터링
+    data_5year = data[data["연도"] % 5 == 0]
+
+    # 2025년 데이터 찾기
+    year_2025 = data[data["연도"] == 2025]
+    value_ageing_2025 = year_2025["노령화지수"].values[0]
+    value_dependency_2025 = year_2025["노년부양비"].values[0]
+
+    # 노령화지수 그래프
+    color1 = '#E91E63'
+    fig1, ax1 = plt.subplots(figsize=(10, 6))
+    
+    ax1.plot(data_5year["연도"], data_5year["노령화지수"], 
+             marker='o', linewidth=2.5, markersize=8, 
+             color='#1976D2', markerfacecolor='#64B5F6', markeredgewidth=1.5)
+
+    # 2024년부터 잠정치 영역 표시
+    ax1.axvspan(2024, 2072, alpha=0.1, color='orange')
+    ax1.axvline(x=2024, color='orange', linestyle='--', linewidth=2, alpha=0.7, label='2024년 이후 잠정치')
+
+    # 2025년 포인트 강조
+    ax1.plot(2025, value_ageing_2025, marker='o', markersize=15, 
+            color=color1, markeredgecolor='darkred', markeredgewidth=2, zorder=5)
+
+    # 2025년 텍스트
+    ax1.text(2025, value_ageing_2025 + 40, '2025년',
+            ha='center', va='center', fontsize=9,
+            color=color1, fontweight='bold')
+    
+    ax1.text(2030, value_ageing_2025 - 30, f'{value_ageing_2025:.1f}',
+            ha='center', va='center', fontsize=14,
+            bbox=dict(boxstyle='round,pad=0.5', facecolor='white', 
+                     edgecolor=color1, linewidth=2.5, alpha=0.95),
+            color=color1, fontweight='bold')
+
+    ax1.set_xlabel('연도', fontsize=13, fontweight='bold')
+    ax1.set_ylabel('노령화지수', fontsize=13, fontweight='bold')
+    ax1.set_title('노령화지수 변화 (1960-2072)', fontsize=14, fontweight='bold', pad=20)
+    
+    years = list(range(1960, 2075, 5))
+    ax1.set_xticks(years)
+    ax1.set_xticklabels(years, rotation=45, ha='right')
+    
+    ax1.grid(True, alpha=0.3, linestyle='--', linewidth=0.8)
+    ax1.set_axisbelow(True)
+    ax1.set_facecolor('#F8F9FA')
+    ax1.legend(loc='upper left', fontsize=10)
+    
+    plt.tight_layout()
+
+    # 노년부양비 그래프
+    color2 = '#E91E63'
+    fig2, ax2 = plt.subplots(figsize=(10, 6))
+    
+    ax2.plot(data_5year["연도"], data_5year["노년부양비"], 
+             marker='o', linewidth=2.5, markersize=8, 
+             color='#1976D2', markerfacecolor='#64B5F6', markeredgewidth=1.5)
+
+    # 2024년부터 잠정치 영역 표시
+    ax2.axvspan(2024, 2072, alpha=0.1, color='orange')
+    ax2.axvline(x=2024, color='orange', linestyle='--', linewidth=2, alpha=0.7, label='2024년 이후 잠정치')
+
+    # 2025년 포인트 강조
+    ax2.plot(2025, value_dependency_2025, marker='o', markersize=15, 
+            color=color2, markeredgecolor='darkred', markeredgewidth=2, zorder=5)
+
+    # 2025년 텍스트
+    ax2.text(2025, value_dependency_2025 + 5, '2025년',
+            ha='center', va='center', fontsize=9,
+            color=color2, fontweight='bold')
+    
+    ax2.text(2030, value_dependency_2025 - 5, f'{value_dependency_2025:.1f}',
+            ha='center', va='center', fontsize=14,
+            bbox=dict(boxstyle='round,pad=0.5', facecolor='white', 
+                     edgecolor=color2, linewidth=2.5, alpha=0.95),
+            color=color2, fontweight='bold')
+
+    ax2.set_xlabel('연도', fontsize=13, fontweight='bold')
+    ax2.set_ylabel('노년부양비', fontsize=13, fontweight='bold')
+    ax2.set_title('노년부양비 변화 (1960-2072)', fontsize=14, fontweight='bold', pad=20)
+    
+    ax2.set_xticks(years)
+    ax2.set_xticklabels(years, rotation=45, ha='right')
+    
+    ax2.grid(True, alpha=0.3, linestyle='--', linewidth=0.8)
+    ax2.set_axisbelow(True)
+    ax2.set_facecolor('#F8F9FA')
+    ax2.legend(loc='upper left', fontsize=10)
+    
+    plt.tight_layout()
+
+    # 그래프를 1:1 비율로 배치
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.pyplot(fig1)
+        plt.close(fig1)
+    with col2:
+        st.pyplot(fig2)
+        plt.close(fig2)
+    st.caption("데이터 출처 : [국가데이터처](https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1BPA002&conn_path=I2)「장래인구추계」, 2072, 2025.11.14, 주요 인구지표(성비,인구성장률,인구구조,부양비 등) / 전국")
+    
+    # 설명 섹션
+    st.subheader("노령화지수 및 노년부양비")
+    st.markdown("<h6>1960 ~ 2072</h6>", unsafe_allow_html=True)
+    st.markdown("<h5>그래프 설명</h5>", unsafe_allow_html=True)
+    st.markdown("**노령화지수**는 유소년인구(14세 이하) 100명에 대한 고령인구(65세 이상)의 비율이다.<br>**노년부양비**는 생산연령인구(15~64세) 100명에 대한 고령(65세 이상)인구의 비이다.<br>심화되는 초고령사회가 짊어질 부담의 정도를 대락적으로 확인할 수 있다.", unsafe_allow_html=True)
+    
+    with st.expander("원본 데이터 표 보기"):
+        st.dataframe(data_df)
+
+def graph_multicultural_furniture(): #다문화가정
+    data_df = pd.read_csv("C:/Users/taehyeon/Desktop/2025-2/전공/데이터시각화/Project/다문화가구.csv", 
+                          header=None, encoding="cp949")
+    
+    data = data_df.transpose()
+    data.columns = data.iloc[0]
+    data = data.drop(data.index[0])
+    data = data.reset_index(drop=True)
+    
+    data.columns = ['연도', '다문화가구']  # 강제로 컬럼명 지정
+    
+    # 데이터 타입 변환
+    data["연도"] = data["연도"].astype(float).astype(int)
+    data["다문화가구"] = data["다문화가구"].astype(float)
+
+    # 2024년 데이터 찾기
+    year_2024 = data[data["연도"] == 2024]
+    value_2024 = year_2024["다문화가구"].values[0]
+
+    # color 설정
+    colors = ['#64B5F6'] * len(data)
+    colors[-1] = '#E91E63'  # 2024년을 강조색으로
+
+    # 그래프 그리기
+    fig, ax = plt.subplots(figsize=(12, 6))
+    
+    # 바 그래프
+    bars = ax.bar(data["연도"], data["다문화가구"], 
+                  color=colors, edgecolor='#1976D2', linewidth=1.5, alpha=0.8)
+
+    # 2024년 값 강조
+    ax.text(2024, value_2024 + 20000, f'{value_2024:,.0f}',
+            ha='center', va='center', fontsize=12,
+            bbox=dict(boxstyle='round,pad=0.5', facecolor='white', 
+                     edgecolor='#E91E63', linewidth=2.5, alpha=0.95),
+            color='#E91E63', fontweight='bold')
+
+    # 축 설정
+    ax.set_xlabel('연도', fontsize=13, fontweight='bold')
+    ax.set_ylabel('다문화가구 수 (가구)', fontsize=13, fontweight='bold')
+    ax.set_title('연도별 다문화가구 수 변화 (2015-2024)', fontsize=16, fontweight='bold', pad=20)
+    
+    # x축 설정
+    ax.set_xticks(data["연도"])
+    ax.set_xticklabels(data["연도"], rotation=45, ha='right')
+    
+    # y축 포맷 (천 단위 구분)
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{int(x):,}'))
+    ax.set_ylim(200000, 500000)
+    # 그리드 설정
+    ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.8, axis='y')
+    ax.set_axisbelow(True)
+    
+    # 배경색 설정
+    ax.set_facecolor('#F8F9FA')
+    
+    plt.tight_layout()
+
+    col1, col2 = st.columns([2, 3])
+    with col1:
+        st.subheader("연도별 다문화가구 수")
+        st.markdown("<h6>2015 ~ 2024</h6>", unsafe_allow_html=True)
+        st.markdown("<h5>그래프 설명</h5>", unsafe_allow_html=True)
+        st.markdown("""
+        2015년부터 2024년까지 **대한민국의 다문화가구 수 변화**를 나타낸다.<br>
+        다문화가구는 한국인과 외국인으로 이루어진 가구 또는 귀화자가 포함된 가구를 의미한다.<br>
+        다문화가구는 지속적으로 증가하고 있었음을 보여주며, 이를 통해 인구의 유입과 저출산 해소의 힌트를 얻었다는 시각을 제시한다.
+        """, unsafe_allow_html=True)
+        with st.expander("원본 데이터 표 보기"):
+            st.dataframe(data_df)
+    with col2:
+        st.pyplot(fig)
+        st.caption("데이터 출처 : [국가데이터처](https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1BZ0505&conn_path=I2)「장래가구추계」, 2052, 2025.11.14, 가구주의 연령/가구유형별 추계가구_시도")
+    
+    plt.close()
+
+def graph_alone_household(): #1인가구
+    data_df = pd.read_csv("C:/Users/taehyeon/Desktop/2025-2/전공/데이터시각화/Project/1인가구수.csv", 
+                          header=None, encoding="cp949")
+    
+    data = data_df.transpose()
+    data.columns = data.iloc[0]
+    data = data.drop(data.index[0])
+    data = data.reset_index(drop=True)
+
+    # 컬럼명 강제 지정
+    data.columns = ['연도', '1인가구수']
+    
+    # 데이터 타입 변환
+    data["연도"] = data["연도"].astype(float).astype(int)
+    data["1인가구수"] = data["1인가구수"].astype(float)
+
+    # 2025년 데이터 찾기
+    year_2025 = data[data["연도"] == 2025]
+    value_2025 = year_2025["1인가구수"].values[0]
+
+    # color 변수 설정
+    color = '#E91E63'
+
+    # 그래프 그리기
+    fig, ax = plt.subplots(figsize=(12, 6))
+    
+    # 선 그래프 (전체 데이터 사용)
+    ax.plot(data["연도"], data["1인가구수"], 
+            marker='o', linewidth=2.5, markersize=6, 
+            color='#1976D2', markerfacecolor='#64B5F6', markeredgewidth=1.5)
+
+    # 2025년 포인트 강조
+    ax.plot(2025, value_2025, marker='o', markersize=15, 
+            color=color, markeredgecolor='darkred', markeredgewidth=2, zorder=5)
+
+    # 2025년 텍스트 - 위쪽 (테두리 없음)
+    ax.text(2025, value_2025 - 300000, '2025년',
+            ha='center', va='center', fontsize=9,
+            color=color, fontweight='bold')
+    
+    # 2025년 값 박스 - 아래쪽 (큰 폰트, bbox 있음)
+    ax.text(2025, value_2025 - 700000, f'{value_2025:,.0f}',
+            ha='center', va='center', fontsize=12,
+            bbox=dict(boxstyle='round,pad=0.5', facecolor='white', 
+                     edgecolor=color, linewidth=2.5, alpha=0.95),
+            color=color, fontweight='bold')
+
+    # 축 설정
+    ax.set_xlabel('연도', fontsize=13, fontweight='bold')
+    ax.set_ylabel('1인 가구 수 (가구)', fontsize=13, fontweight='bold')
+    ax.set_title('연도별 1인 가구 수 변화 (2000-2025)', fontsize=16, fontweight='bold', pad=20)
+    
+    # x축 5년 단위로 강제 설정
+    years = list(range(2000, 2030, 5))
+    ax.set_xticks(years)
+    ax.set_xticklabels(years, rotation=45, ha='right')
+    
+    # y축 포맷 (천 단위 구분)
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{int(x/1000000):.0f}M'))
+    
+    # 그리드 설정
+    ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.8)
+    ax.set_axisbelow(True)
+    
+    # 배경색 설정
+    ax.set_facecolor('#F8F9FA')
+    
+    plt.tight_layout()
+    
+    return fig, data_df
+
+def graph_alone_household_pie(): #1인가구 비율
+    data_df = pd.read_csv("C:/Users/taehyeon/Desktop/2025-2/전공/데이터시각화/Project/1인가구비중.csv", 
+                          header=None, encoding="cp949")
+    
+    data = data_df.transpose()
+    data.columns = data.iloc[0]
+    data = data.drop(data.index[0])
+    data = data.reset_index(drop=True)
+
+    # 컬럼명 강제 지정
+    data.columns = ['연도', '전체가구수', '1인가구수']
+    
+    # 데이터 타입 변환
+    data["연도"] = data["연도"].astype(float).astype(int)
+    data["전체가구수"] = data["전체가구수"].astype(float)
+    data["1인가구수"] = data["1인가구수"].astype(float)
+
+    # 2025년 데이터 추출
+    data_2025 = data[data["연도"] == 2025]
+    total_household = data_2025["전체가구수"].values[0]
+    alone_household = data_2025["1인가구수"].values[0]
+    other_household = total_household - alone_household
+    
+    # 비율 계산
+    alone_ratio = (alone_household / total_household) * 100
+    other_ratio = (other_household / total_household) * 100
+
+    # 파이 차트 데이터
+    sizes = [alone_household, other_household]
+    labels = ['1인 가구', '다인 가구']
+    colors = ['#FF6B6B', '#A8D5BA']
+    explode = [0.1, 0]  # 1인 가구 돌출
+
+    # 파이 차트 생성
+    fig, ax = plt.subplots(figsize=(10, 10))
+
+    wedges, texts, autotexts = ax.pie(
+        sizes,
+        labels=labels,
+        autopct='%1.1f%%',
+        startangle=90,
+        colors=colors,
+        explode=explode,
+        textprops={'fontsize': 20, 'fontweight': 'bold'},
+        pctdistance=0.85
+    )
+
+    # 1인 가구 강조
+    wedges[0].set_edgecolor('#D32F2F')
+    wedges[0].set_linewidth(4)
+    texts[0].set_fontsize(16)
+    texts[0].set_color('#D32F2F')
+    autotexts[0].set_color('white')
+    autotexts[0].set_fontsize(16)
+
+    # 다인 가구 스타일
+    autotexts[1].set_fontsize(14)
+    autotexts[1].set_fontweight('bold')
+
+    # 제목
+    plt.title('1인 가구 비중 (2025)', fontsize=25, fontweight='bold', pad=20)
+
+    plt.tight_layout()
+    
+    return fig, data_df, total_household, alone_household, alone_ratio
+
+def st_columns_household():
+    # 데이터 로드
+    fig_line, data_df_line = graph_alone_household()
+    fig_pie, data_df_pie, total_household, alone_household, alone_ratio = graph_alone_household_pie()
+    
+    # 컨테이너 1: 그래프
+    cont1 = st.container()
+    with cont1:
+        col1, col2 = st.columns([5, 2.445])
+        with col1:
+            st.pyplot(fig_line)
+            plt.close(fig_line)
+        with col2:
+            st.pyplot(fig_pie)
+            plt.close(fig_pie)
+    
+    # 컨테이너 2: 출처
+    cont2 = st.container()
+    with cont2:
+        st.caption("데이터 출처 : [국가데이터처](https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1BZ0505&conn_path=I2)「장래가구추계」, 2052, 2025.11.14, 가구주의 연령/가구유형별 추계가구_시도")
+        st.caption("데이터 출처 : [국가데이터처](https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1BZ0502&conn_path=I2)「장래가구추계」, 2052, 2025.11.14, 가구주의 연령/가구유형별 추계가구-전국")
+
+        
+    # 컨테이너 3: 설명
+    cont3 = st.container()
+    with cont3:
+        col1, col2 = st.columns([5, 2.445])
+        with col1:
+            st.subheader("연도별 1인 가구 수")
+            st.markdown("<h6>2000 ~ 2025</h6>", unsafe_allow_html=True)
+            st.markdown("<h5>그래프 설명</h5>", unsafe_allow_html=True)
+            st.markdown("""
+            2000년부터 2025년까지 **1인 가구 수의 변화**를 나타낸다.<br>
+            1인 가구는 1명이 독립적으로 취사, 취침 등 생계를 유지하는 가구를 의미한다.<br>
+            2000년부터 지속적으로 증가하였으며, 2020년을 기점으로 1인 가구 증가세가 소폭 상승했음을 확인 가능하다.
+            """, unsafe_allow_html=True)
+            with st.expander("원본 데이터 표 보기"):
+                st.dataframe(data_df_line)
+        
+        with col2:
+            st.subheader("2025년 1인 가구 비중")
+            st.markdown("<h6>전체 가구 대비 1인 가구</h6>", unsafe_allow_html=True)
+            st.markdown("<h5>그래프 설명</h5>", unsafe_allow_html=True)
+            st.markdown(f"""
+            2025년 **전체 가구 중 1인 가구가 차지하는 비중**을 나타낸다.<br>
+            전체 가구 중 **1인 가구가 {alone_ratio:.1f}%를 차지하고 있다.**<br>
+            """, unsafe_allow_html=True)
+            with st.expander("원본 데이터 표 보기"):
+                st.dataframe(data_df_pie)
 
 apply_web_font()
 setting_matplotlib_font()
@@ -381,11 +917,33 @@ st.set_page_config(layout="wide")
 
 st.title("대한민국 총인구 대시보드")
 st.markdown("<h6>게시자 : 첨단IT학부 빅데이터전공 20223468 김태현</h6>", unsafe_allow_html=True)
+st.divider()
 
 def main() :
-    graph_population()
-    st.divider()
-    st_columns_SexAge()
+    cont1 = st.container()
+    cont2 = st.container()
+    cont3 = st.container()
+    cont4 = st.container()
+    
+    with cont1 :
+        st.markdown("<h3>Section 1 : 대한민국 인구 현황</h3>\n<h5>현재 대한민국의 인구가 '얼마나', '어떻게' 구성되어 있는지 확인할 수 있습니다.</h5>",unsafe_allow_html=True)
+        graph_population()
+        st_columns_SexAge()
+        st.divider()
+    with cont2 :
+        st.markdown("<h3>Section 2 : 인구 감소 원인 확인</h3>\n<h5>대한민국의 인구성장률과 합계출산율을 통해 인구 감소의 원인을 확인할 수 있습니다.</h5>",unsafe_allow_html=True)
+        graph_population_growrate()
+        graph_fertility_rate()
+        st.divider()
+    with cont3 :
+        st.markdown("<h3>Section 3 : 사회적 영향과 미래</h3>\n<h5>저출산이 고령화로 이어지는 과정과 결과, 이로 야기되는 사회적 부담을 확인할 수 있습니다.</h5>",unsafe_allow_html=True)
+        graph_ageing_index()
+        st.divider()
+    with cont4 :
+        st.markdown("<h3>Section 4 : 가구 구조의 변화</h3>\n<h5>사회를 구성하는 기본 단위인 '가구'의 형태 변화를 강조하며, 저출산 해결의 실마리인 다문화 가정을 제시합니다.</h5>",unsafe_allow_html=True)
+        st_columns_household()
+        graph_multicultural_furniture()
+
 
 if __name__ == "__main__" :
     main()
