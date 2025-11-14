@@ -1,4 +1,5 @@
 import streamlit as st
+import os
 #on terminal, streamlit run (path)
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -126,14 +127,29 @@ def apply_web_font(): #Streamlit 웹에 Pretendard family 웹 폰트 적용
     st.markdown(comp_css, unsafe_allow_html=True)
 
 def setting_matplotlib_font(): #Matplotlib 차트 이미지에 로컬 Pretendard 폰트 적용
-    font_path = 'C:/Users/taehyeon/Desktop/2025-2/전공/데이터시각화/Project/Pretendard-Bold.ttf' # (Pretendard-Bold.ttf도 가능)
+    # 현재 스크립트 파일(streamlit_demo.py)이 있는 폴더 경로
+    base_dir = os.path.dirname(__file__)
     
-    fm.fontManager.addfont(font_path)
+    # 폰트 파일 이름
+    font_filename = 'Pretendard-Bold.ttf' 
     
-    font_prop = fm.FontProperties(fname=font_path)
+    # 폰트 파일의 전체 경로 (base_dir와 폰트 파일 이름을 합침)
+    font_path = os.path.join(base_dir, font_filename)
+
+    # (중요) 폰트가 실제로 존재하는지 확인
+    if not os.path.exists(font_path):
+        # 만약 파일을 못 찾으면, Streamlit Cloud 로그에 경로가 찍히도록 함
+        print(f"현재 폴더 경로: {base_dir}")
+        print(f"찾으려는 폰트 경로: {font_path}")
+        raise FileNotFoundError(f"폰트 파일을 찾을 수 없습니다: {font_path}")
     
-    plt.rcParams['font.family'] = font_prop.get_name()
+    plt.rcParams['font.family'] = 'Pretendard' # <-- 'Pretendard-Bold'가 아닐 수 있음
     plt.rcParams['axes.unicode_minus'] = False # 마이너스 기호 깨짐 방지
+    
+    print("폰트 설정 완료.") # Streamlit Cloud 로그 확인용
+
+    # 폰트 매니저에 폰트 추가
+    fm.fontManager.addfont(font_path)
 
 def graph_population() : #총인구수 그래프
     data = pd.read_csv("C:/Users/taehyeon/Desktop/2025-2/전공/데이터시각화/Project/장래인구추계.csv", encoding="cp949")
