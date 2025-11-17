@@ -7,14 +7,7 @@ import matplotlib.font_manager as fm
 import matplotlib.ticker as ticker
 from matplotlib import rc
 
-# ------ 들어가며 -------
-# local path 에서 os를 통해 csv, font 파일들을 찾는 것은 AI의 도움을 받았습니다.
-
-# --- (핵심 수정 1) ---
-# 스크립트 파일의 기본 경로를 맨 위에 한 번만 정의합니다.
-# 이제 모든 함수가 이 'base_dir' 변수를 사용할 수 있습니다.
 base_dir = os.path.dirname(__file__)
-# ---------------------
 
 def apply_web_font(): #Streamlit 웹에 Pretendard family 웹 폰트 적용
     #Pretendard @font-face CSS 구문
@@ -136,37 +129,28 @@ def apply_web_font(): #Streamlit 웹에 Pretendard family 웹 폰트 적용
     st.markdown(comp_css, unsafe_allow_html=True)
 
 def setting_matplotlib_font(): #Matplotlib 차트 이미지에 로컬 Pretendard 폰트 적용
-    # --- (핵심 수정 2) ---
-    # base_dir 정의를 제거하고, 상단에 정의된 전역 'base_dir' 변수를 사용합니다.
-    # ---------------------
-    
-    # 폰트 파일 이름
     font_filename = 'Pretendard-Bold.ttf' 
     
-    # 폰트 파일의 전체 경로 (base_dir와 폰트 파일 이름을 합침)
-    font_path = os.path.join(base_dir, font_filename) # <-- 수정됨 (전역 base_dir 사용)
+    #폰트 파일의 전체 경로 (base_dir와 폰트 파일 이름을 합침)
+    font_path = os.path.join(base_dir, font_filename)
 
-    # (중요) 폰트가 실제로 존재하는지 확인
+    #폰트가 확인
     if not os.path.exists(font_path):
-        # 만약 파일을 못 찾으면, Streamlit Cloud 로그에 경로가 찍히도록 함
+        #디버깅용
         print(f"현재 폴더 경로: {base_dir}")
         print(f"찾으려는 폰트 경로: {font_path}")
         raise FileNotFoundError(f"폰트 파일을 찾을 수 없습니다: {font_path}")
     
-    plt.rcParams['font.family'] = 'Pretendard' # <-- 'Pretendard-Bold'가 아닐 수 있음
-    plt.rcParams['axes.unicode_minus'] = False # 마이너스 기호 깨짐 방지
+    plt.rcParams['font.family'] = 'Pretendard'
+    plt.rcParams['axes.unicode_minus'] = False 
     
-    print("폰트 설정 완료.") # Streamlit Cloud 로그 확인용
-
-    # 폰트 매니저에 폰트 추가
+    print("폰트 설정 완료.") #디버깅용
+    
     fm.fontManager.addfont(font_path)
 
 def graph_population() : #총인구수 그래프
-    # --- (핵심 수정 3) ---
-    # 모든 C:/... 경로를 os.path.join(base_dir, "파일명.csv")로 변경합니다.
-    csv_path = os.path.join(base_dir, "장래인구추계.csv") # <-- 수정됨
-    data = pd.read_csv(csv_path, encoding="cp949") # <-- 수정됨
-    # ---------------------
+    csv_path = os.path.join(base_dir, "장래인구추계.csv")
+    data = pd.read_csv(csv_path, encoding="cp949")
 
     years = data.columns[1:]
     population = data.iloc[0, 1:]
@@ -186,14 +170,14 @@ def graph_population() : #총인구수 그래프
     #최대치 연도 세로선
     plt.axvline(x = max_year, color = 'red', linestyle = ':', linewidth = 2, label = f'최대 인구 시점, {max_year}년')
     text_label = f"{max_population_value:,.0f}명"
-    plt.text(x=max_year + 0.2,            #x좌표 (선에서 0.2년 옆)
-             y=max_population_value / 2,    #y좌표 (선의 중간쯤)
-             s=text_label,                  #표시할 텍스트
-             color='red',                   #텍스트 색상
+    plt.text(x=max_year + 0.2,            
+             y=max_population_value / 2,    
+             s=text_label,                  
+             color='red',                  
              fontsize=22,
-             rotation=270,                  #텍스트를 90도 회전
-             ha='left',                     #수평 정렬 (텍스트의 왼쪽을 x좌표에 맞춤)
-             va='center')                   #수직 정렬 (텍스트의 세로 중앙을 y좌표에 맞춤)           
+             rotation=270,                  
+             ha='left',                     
+             va='center')                    
     plt.legend()
     
     plt.xlabel("연도", fontsize = 12)
@@ -208,7 +192,7 @@ def graph_population() : #총인구수 그래프
     plt.xticks(range(1960, 2030, 5), rotation = 45)
     plt.yticks(range(10000000, 60000000, 10000000), labels=["10M", "20M", "30M", "40M", "50M"])
     
-    plt.tight_layout()  #전체 레이아웃 최적화
+    plt.tight_layout() 
     
     col1, col2 = st.columns([3,1])
     with col1 :
@@ -234,8 +218,8 @@ def graph_population() : #총인구수 그래프
     plt.close()
 
 def graph_population_sex() : #성별에 따른 바 그래프 
-    csv_path = os.path.join(base_dir, "성비.csv") # <-- 수정됨
-    data = pd.read_csv(csv_path, encoding="cp949") # <-- 수정됨
+    csv_path = os.path.join(base_dir, "성비.csv") 
+    data = pd.read_csv(csv_path, encoding="cp949")
 
     years = data.columns[1:]
     population = data.iloc[0:, 1:3]
@@ -264,15 +248,15 @@ def graph_population_sex() : #성별에 따른 바 그래프
 
     #증감률 및 성비 표기
     for i in x:
-        #2025년에만 전년 대비 증감률 표기
+        #2025년에만 증감률 표기
         if i == 1:
-            #남성 증감률
+            #남성
             male_change = ((male[i] - male[i-1]) / male[i-1]) * 100
             plt.text(i - width/2, male[i] + male.max() * 0.0002, 
                      f'{male_change:+.2f}%\n{abs(male[i] - male[i-1]):,.0f}명 감소', 
                      ha='center', va='bottom', fontsize=9, fontweight='bold', color='#2E86AB')
             
-            #여성 증감률
+            #여성
             female_change = ((female[i] - female[i-1]) / female[i-1]) * 100
             plt.text(i + width/2, female[i] + female.max() * 0.0002, 
                      f'{female_change:+.2f}%\n{abs(female[i] - female[i-1]):,.0f}명 감소', 
@@ -282,7 +266,7 @@ def graph_population_sex() : #성별에 따른 바 그래프
         diff = male[i] - female[i]
         diff_percent = (diff / female[i]) * 100
         
-        #두 바 사이 중앙에 표기
+
         mid_y = (male[i] + female[i]) * 0.5 + 40000
         
         if diff > 0:
@@ -301,27 +285,25 @@ def graph_population_sex() : #성별에 따른 바 그래프
     return fig, data
 
 def graph_population_age() : #연령에 따른 파이 그래프
-    csv_path = os.path.join(base_dir, "연령.csv") # <-- 수정됨
-    data = pd.read_csv(csv_path, encoding="cp949") # <-- 수정됨
+    csv_path = os.path.join(base_dir, "연령.csv") 
+    data = pd.read_csv(csv_path, encoding="cp949")
 
-    # 연령대별 그룹화
+    #연령대별 그룹화
     youth = data[data["연령별"].isin(["0 - 4세", "5 - 9세", "10 - 14세"])]["2025"].sum()
     adult = data[data["연령별"].str.contains("15|20|25|30|35|40|45|50|55|60 - 64세")]["2025"].sum()
     elderly = data[data["연령별"].str.contains("65|70|75|80|100")]["2025"].sum()
 
-    # 새로운 데이터프레임 생성
     age_groups = pd.DataFrame({
         "연령층": ["유소년층\n(0~14세)", "청장년층\n(15~64세)", "노년층\n(65세 이상)"],
         "인구": [youth, adult, elderly]
     })
 
-    # 색상 설정 (노년층을 빨간색으로 강조)
+    #색상 설정 노년층-빨간색
     colors = ['#A8D5BA', '#7EB6D5', '#FF6B6B']
 
-    # explode 설정 (노년층만 돌출)
+    #explode 설정, 노년층만
     explode = [0, 0, 0.15]
 
-    # 파이 차트 생성
     fig, ax = plt.subplots(figsize=(7, 7))
 
     wedges, texts, autotexts = ax.pie(
@@ -335,9 +317,9 @@ def graph_population_age() : #연령에 따른 파이 그래프
         pctdistance=0.85
     )
 
-    # 노년층 강조
+    #노년층 강조
     for i, (wedge, text, autotext) in enumerate(zip(wedges, texts, autotexts)):
-        if i == 2:  # 노년층
+        if i == 2: 
             wedge.set_edgecolor('#D32F2F')
             wedge.set_linewidth(4)
             text.set_fontsize(16)
@@ -350,7 +332,6 @@ def graph_population_age() : #연령에 따른 파이 그래프
             autotext.set_fontsize(12)
             autotext.set_fontweight('bold')
 
-    # 제목
     plt.title('연령층별 인구 비율 (2025)', fontsize=18, fontweight='bold', pad=20)
 
     plt.tight_layout()
@@ -358,11 +339,10 @@ def graph_population_age() : #연령에 따른 파이 그래프
     return fig, data
 
 def st_columns_SexAge() : #성별, 연령 통합 출력 
-    # 그래프 생성
     fig_sex, data_sex = graph_population_sex()
     fig_age, data_age = graph_population_age()
     
-    # 그래프 컨테이너
+    #그래프 컨테이너
     graph_container = st.container()
     with graph_container:
         col1, col2 = st.columns([4, 2.95])
@@ -375,7 +355,7 @@ def st_columns_SexAge() : #성별, 연령 통합 출력
             st.pyplot(fig_age)
             plt.close(fig_age)
     
-    # 설명 컨테이너
+    #설명 컨테이너
     description_container = st.container()
     with description_container:
         col1, col2 = st.columns([4, 2.95])
@@ -397,69 +377,55 @@ def st_columns_SexAge() : #성별, 연령 통합 출력
                 st.dataframe(data_age)
 
 def graph_population_growrate() : #인구성장률
-    csv_path = os.path.join(base_dir, "인구성장률.csv") # <-- 수정됨
-    data_df = pd.read_csv(csv_path, header=None, encoding="cp949") # <-- 수정됨
+    csv_path = os.path.join(base_dir, "인구성장률.csv")
+    data_df = pd.read_csv(csv_path, header=None, encoding="cp949")
     
     data = data_df.transpose()
     data.columns = data.iloc[0]
     data = data.drop(data.index[0])
     data = data.reset_index(drop=True)
 
-    # 연도를 정수형으로 변환
     data["연도"] = data["연도"].astype(float).astype(int)
     data["인구성장률"] = data["인구성장률"].astype(float)
 
-    # 5년 단위로 필터링 (1960, 1965, 1970, ..., 2025)
+    #5년 단위
     data_5year = data[data["연도"] % 5 == 0]
-
-    # 2025년 데이터 찾기
     year_2025 = data[data["연도"] == 2025]
     value_2025 = year_2025["인구성장률"].values[0]
-
-    # color 변수 설정
+    
     color = '#E91E63'
 
-    # 그래프 그리기
     fig, ax = plt.subplots(figsize=(12, 6))
     
-    # 선 그래프
     ax.plot(data_5year["연도"], data_5year["인구성장률"], 
             marker='o', linewidth=2.5, markersize=8, 
             color='#1976D2', markerfacecolor='#64B5F6', markeredgewidth=1.5)
 
-    # 2025년 포인트 강조
     ax.plot(2025, value_2025, marker='o', markersize=15, 
             color=color, markeredgecolor='darkred', markeredgewidth=2, zorder=5)
 
-    # 2025년 텍스트 - 위쪽 (테두리 없음)
     ax.text(2025, value_2025 + 0.50, '2025년',
             ha='center', va='center', fontsize=9,
             color=color, fontweight='bold')
     
-    # 2025년 값 박스 - 아래쪽 (큰 폰트, bbox 있음)
     ax.text(2025, value_2025 + 0.30, f'{value_2025:.2f}%',
             ha='center', va='center', fontsize=14,
             bbox=dict(boxstyle='round,pad=0.5', facecolor='white', 
                       edgecolor=color, linewidth=2.5, alpha=0.95),
             color=color, fontweight='bold')
 
-    # 축 설정
     ax.set_xlabel('연도', fontsize=13, fontweight='bold')
     ax.set_ylabel('인구성장률 (%)', fontsize=13, fontweight='bold')
     ax.set_title('인구성장률 변화 (1960-2025)', fontsize=16, fontweight='bold', pad=20)
     
-    # x축 5년 단위로 강제 설정
     years = list(range(1960, 2030, 5))
     ax.set_xticks(years)
     ax.set_xticklabels(years, rotation=45, ha='right')
     
-    # 그리드 설정
     ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.8)
     ax.set_axisbelow(True)
     
-    # 배경색 설정
     ax.set_facecolor('#F8F9FA')
-    
     plt.tight_layout()
 
     col1, col2 = st.columns([1.3,3])
@@ -478,67 +444,51 @@ def graph_population_growrate() : #인구성장률
     plt.close()
 
 def graph_fertility_rate(): #합계출산율
-    csv_path = os.path.join(base_dir, "합계출산율.csv") # <-- 수정됨
-    data_df = pd.read_csv(csv_path, header=None, encoding="cp949") # <-- 수정됨
+    csv_path = os.path.join(base_dir, "합계출산율.csv")
+    data_df = pd.read_csv(csv_path, header=None, encoding="cp949")
     
     data = data_df.transpose()
     data.columns = data.iloc[0]
     data = data.drop(data.index[0])
     data = data.reset_index(drop=True)
 
-    # 연도를 정수형으로 변환
     data["연도"] = data["연도"].astype(float).astype(int)
     data["합계출산율"] = data["합계출산율"].astype(float)
 
-    # 5년 단위로 필터링 (1970, 1975, 1980, ..., 2025)
     data_5year = data[data["연도"] % 5 == 0]
 
-    # 2025년 데이터 찾기
     year_2025 = data[data["연도"] == 2025]
     value_2025 = year_2025["합계출산율"].values[0]
 
-    # color 변수 설정
     color = '#E91E63'
 
-    # 그래프 그리기
     fig, ax = plt.subplots(figsize=(12, 6))
     
-    # 선 그래프
     ax.plot(data_5year["연도"], data_5year["합계출산율"], 
             marker='o', linewidth=2.5, markersize=8, 
             color='#1976D2', markerfacecolor='#64B5F6', markeredgewidth=1.5)
 
-    # 2024년 수직선 추가 (잠정치 표시)
     ax.axvline(x=2024, color='orange', linestyle='--', linewidth=2, alpha=0.7, label='잠정치')
-    
-    # 잠정치 영역 음영 처리
     ax.axvspan(2024, 2026, alpha=0.1, color='orange')
 
-    # 2025년 포인트 강조
     ax.plot(2025, value_2025, marker='o', markersize=15, 
             color=color, markeredgecolor='darkred', markeredgewidth=2, zorder=5)
 
-    # 축 설정
     ax.set_xlabel('연도', fontsize=13, fontweight='bold')
     ax.set_ylabel('합계출산율 (명)', fontsize=13, fontweight='bold')
     ax.set_title('합계출산율 변화 (1970-2025)', fontsize=16, fontweight='bold', pad=20)
     
-    # x축 5년 단위로 강제 설정
     years = list(range(1970, 2030, 5))
     ax.set_xticks(years)
     ax.set_xticklabels(years, rotation=45, ha='right')
     ax.set_xlim(1970, 2026)
 
-    # 그리드 설정
     ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.8)
     ax.set_axisbelow(True)
     
-    # 배경색 설정
     ax.set_facecolor('#F8F9FA')
     
-    # 범례 추가
     ax.legend(loc='upper right', fontsize=10)
-    
     plt.tight_layout()
 
     col1, col2 = st.columns([3, 1])
@@ -557,28 +507,25 @@ def graph_fertility_rate(): #합계출산율
     plt.close()
 
 def graph_ageing_index(): #고령화지수
-    csv_path = os.path.join(base_dir, "노령화지수_노년부양비.csv") # <-- 수정됨
-    data_df = pd.read_csv(csv_path, header=None, encoding="cp949") # <-- 수정됨
+    csv_path = os.path.join(base_dir, "노령화지수_노년부양비.csv")
+    data_df = pd.read_csv(csv_path, header=None, encoding="cp949")
     
     data = data_df.transpose()
     data.columns = data.iloc[0]
     data = data.drop(data.index[0])
     data = data.reset_index(drop=True)
 
-    # 데이터 타입 변환
     data["연도"] = data["연도"].astype(float).astype(int)
     data["노령화지수"] = data["노령화지수"].astype(float)
     data["노년부양비"] = data["노년부양비"].astype(float)
 
-    # 5년 단위로 필터링
     data_5year = data[data["연도"] % 5 == 0]
-
-    # 2025년 데이터 찾기
+    
     year_2025 = data[data["연도"] == 2025]
     value_ageing_2025 = year_2025["노령화지수"].values[0]
     value_dependency_2025 = year_2025["노년부양비"].values[0]
 
-    # 노령화지수 그래프
+    #노령화지수
     color1 = '#E91E63'
     fig1, ax1 = plt.subplots(figsize=(10, 6))
     
@@ -586,15 +533,12 @@ def graph_ageing_index(): #고령화지수
              marker='o', linewidth=2.5, markersize=8, 
              color='#1976D2', markerfacecolor='#64B5F6', markeredgewidth=1.5)
 
-    # 2024년부터 잠정치 영역 표시
     ax1.axvspan(2024, 2072, alpha=0.1, color='orange')
     ax1.axvline(x=2024, color='orange', linestyle='--', linewidth=2, alpha=0.7, label='2024년 이후 잠정치')
 
-    # 2025년 포인트 강조
     ax1.plot(2025, value_ageing_2025, marker='o', markersize=15, 
              color=color1, markeredgecolor='darkred', markeredgewidth=2, zorder=5)
 
-    # 2025년 텍스트
     ax1.text(2025, value_ageing_2025 + 40, '2025년',
              ha='center', va='center', fontsize=9,
              color=color1, fontweight='bold')
@@ -620,7 +564,7 @@ def graph_ageing_index(): #고령화지수
     
     plt.tight_layout()
 
-    # 노년부양비 그래프
+    #노년부양비
     color2 = '#E91E63'
     fig2, ax2 = plt.subplots(figsize=(10, 6))
     
@@ -628,15 +572,12 @@ def graph_ageing_index(): #고령화지수
              marker='o', linewidth=2.5, markersize=8, 
              color='#1976D2', markerfacecolor='#64B5F6', markeredgewidth=1.5)
 
-    # 2024년부터 잠정치 영역 표시
     ax2.axvspan(2024, 2072, alpha=0.1, color='orange')
     ax2.axvline(x=2024, color='orange', linestyle='--', linewidth=2, alpha=0.7, label='2024년 이후 잠정치')
 
-    # 2025년 포인트 강조
     ax2.plot(2025, value_dependency_2025, marker='o', markersize=15, 
              color=color2, markeredgecolor='darkred', markeredgewidth=2, zorder=5)
 
-    # 2025년 텍스트
     ax2.text(2025, value_dependency_2025 + 5, '2025년',
              ha='center', va='center', fontsize=9,
              color=color2, fontweight='bold')
@@ -660,8 +601,6 @@ def graph_ageing_index(): #고령화지수
     ax2.legend(loc='upper left', fontsize=10)
     
     plt.tight_layout()
-
-    # 그래프를 1:1 비율로 배치
     col1, col2 = st.columns([1, 1])
     
     with col1:
@@ -672,7 +611,6 @@ def graph_ageing_index(): #고령화지수
         plt.close(fig2)
     st.caption("데이터 출처 : [국가데이터처](https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1BPA002&conn_path=I2)「장래인구추계」, 2072, 2025.11.14, 주요 인구지표(성비,인구성장률,인구구조,부양비 등) / 전국")
     
-    # 설명 섹션
     st.subheader("노령화지수 및 노년부양비")
     st.markdown("<h6>1960 ~ 2072</h6>", unsafe_allow_html=True)
     st.markdown("<h5>그래프 설명</h5>", unsafe_allow_html=True)
@@ -682,59 +620,48 @@ def graph_ageing_index(): #고령화지수
         st.dataframe(data_df)
 
 def graph_multicultural_furniture(): #다문화가정
-    csv_path = os.path.join(base_dir, "다문화가구.csv") # <-- 수정됨
-    data_df = pd.read_csv(csv_path, header=None, encoding="cp949") # <-- 수정됨
+    csv_path = os.path.join(base_dir, "다문화가구.csv")
+    data_df = pd.read_csv(csv_path, header=None, encoding="cp949")
     
     data = data_df.transpose()
     data.columns = data.iloc[0]
     data = data.drop(data.index[0])
     data = data.reset_index(drop=True)
     
-    data.columns = ['연도', '다문화가구']  # 강제로 컬럼명 지정
+    data.columns = ['연도', '다문화가구']
     
-    # 데이터 타입 변환
     data["연도"] = data["연도"].astype(float).astype(int)
     data["다문화가구"] = data["다문화가구"].astype(float)
-
-    # 2024년 데이터 찾기
+    
     year_2024 = data[data["연도"] == 2024]
     value_2024 = year_2024["다문화가구"].values[0]
 
-    # color 설정
     colors = ['#64B5F6'] * len(data)
-    colors[-1] = '#E91E63'  # 2024년을 강조색으로
+    colors[-1] = '#E91E63' 
 
-    # 그래프 그리기
     fig, ax = plt.subplots(figsize=(12, 6))
     
-    # 바 그래프
     bars = ax.bar(data["연도"], data["다문화가구"], 
                   color=colors, edgecolor='#1976D2', linewidth=1.5, alpha=0.8)
 
-    # 2024년 값 강조
     ax.text(2024, value_2024 + 20000, f'{value_2024:,.0f}',
             ha='center', va='center', fontsize=12,
             bbox=dict(boxstyle='round,pad=0.5', facecolor='white', 
                       edgecolor='#E91E63', linewidth=2.5, alpha=0.95),
             color='#E91E63', fontweight='bold')
 
-    # 축 설정
     ax.set_xlabel('연도', fontsize=13, fontweight='bold')
     ax.set_ylabel('다문화가구 수 (가구)', fontsize=13, fontweight='bold')
     ax.set_title('연도별 다문화가구 수 변화 (2015-2024)', fontsize=16, fontweight='bold', pad=20)
     
-    # x축 설정
     ax.set_xticks(data["연도"])
     ax.set_xticklabels(data["연도"], rotation=45, ha='right')
     
-    # y축 포맷 (천 단위 구분)
     ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{int(x):,}'))
     ax.set_ylim(200000, 500000)
-    # 그리드 설정
     ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.8, axis='y')
     ax.set_axisbelow(True)
     
-    # 배경색 설정
     ax.set_facecolor('#F8F9FA')
     
     plt.tight_layout()
@@ -758,110 +685,88 @@ def graph_multicultural_furniture(): #다문화가정
     plt.close()
 
 def graph_alone_household(): #1인가구
-    csv_path = os.path.join(base_dir, "1인가구수.csv") # <-- 수정됨
-    data_df = pd.read_csv(csv_path, header=None, encoding="cp949") # <-- 수정됨
+    csv_path = os.path.join(base_dir, "1인가구수.csv") 
+    data_df = pd.read_csv(csv_path, header=None, encoding="cp949") 
     
     data = data_df.transpose()
     data.columns = data.iloc[0]
     data = data.drop(data.index[0])
     data = data.reset_index(drop=True)
 
-    # 컬럼명 강제 지정
     data.columns = ['연도', '1인가구수']
     
-    # 데이터 타입 변환
     data["연도"] = data["연도"].astype(float).astype(int)
     data["1인가구수"] = data["1인가구수"].astype(float)
 
-    # 2025년 데이터 찾기
     year_2025 = data[data["연도"] == 2025]
     value_2025 = year_2025["1인가구수"].values[0]
 
-    # color 변수 설정
     color = '#E91E63'
-
-    # 그래프 그리기
     fig, ax = plt.subplots(figsize=(12, 6))
     
-    # 선 그래프 (전체 데이터 사용)
     ax.plot(data["연도"], data["1인가구수"], 
             marker='o', linewidth=2.5, markersize=6, 
             color='#1976D2', markerfacecolor='#64B5F6', markeredgewidth=1.5)
 
-    # 2025년 포인트 강조
     ax.plot(2025, value_2025, marker='o', markersize=15, 
             color=color, markeredgecolor='darkred', markeredgewidth=2, zorder=5)
 
-    # 2025년 텍스트 - 위쪽 (테두리 없음)
     ax.text(2025, value_2025 - 300000, '2025년',
             ha='center', va='center', fontsize=9,
             color=color, fontweight='bold')
     
-    # 2025년 값 박스 - 아래쪽 (큰 폰트, bbox 있음)
     ax.text(2025, value_2025 - 700000, f'{value_2025:,.0f}',
             ha='center', va='center', fontsize=12,
             bbox=dict(boxstyle='round,pad=0.5', facecolor='white', 
                       edgecolor=color, linewidth=2.5, alpha=0.95),
             color=color, fontweight='bold')
 
-    # 축 설정
     ax.set_xlabel('연도', fontsize=13, fontweight='bold')
     ax.set_ylabel('1인 가구 수 (가구)', fontsize=13, fontweight='bold')
     ax.set_title('연도별 1인 가구 수 변화 (2000-2025)', fontsize=16, fontweight='bold', pad=20)
-    
-    # x축 5년 단위로 강제 설정
+
     years = list(range(2000, 2030, 5))
     ax.set_xticks(years)
     ax.set_xticklabels(years, rotation=45, ha='right')
-    
-    # y축 포맷 (천 단위 구분)
+
     ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'{int(x/1000000):.0f}M'))
-    
-    # 그리드 설정
+
     ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.8)
     ax.set_axisbelow(True)
-    
-    # 배경색 설정
+
     ax.set_facecolor('#F8F9FA')
-    
     plt.tight_layout()
     
     return fig, data_df
 
 def graph_alone_household_pie(): #1인가구 비율
-    csv_path = os.path.join(base_dir, "1인가구비중.csv") # <-- 수정됨
-    data_df = pd.read_csv(csv_path, header=None, encoding="cp949") # <-- 수정됨
+    csv_path = os.path.join(base_dir, "1인가구비중.csv")
+    data_df = pd.read_csv(csv_path, header=None, encoding="cp949")
     
     data = data_df.transpose()
     data.columns = data.iloc[0]
     data = data.drop(data.index[0])
     data = data.reset_index(drop=True)
 
-    # 컬럼명 강제 지정
     data.columns = ['연도', '전체가구수', '1인가구수']
-    
-    # 데이터 타입 변환
+
     data["연도"] = data["연도"].astype(float).astype(int)
     data["전체가구수"] = data["전체가구수"].astype(float)
     data["1인가구수"] = data["1인가구수"].astype(float)
 
-    # 2025년 데이터 추출
     data_2025 = data[data["연도"] == 2025]
     total_household = data_2025["전체가구수"].values[0]
     alone_household = data_2025["1인가구수"].values[0]
     other_household = total_household - alone_household
-    
-    # 비율 계산
+
     alone_ratio = (alone_household / total_household) * 100
     other_ratio = (other_household / total_household) * 100
 
-    # 파이 차트 데이터
     sizes = [alone_household, other_household]
     labels = ['1인 가구', '다인 가구']
     colors = ['#FF6B6B', '#A8D5BA']
-    explode = [0.1, 0]  # 1인 가구 돌출
+    explode = [0.1, 0]  #1인 가구 돌출
 
-    # 파이 차트 생성
     fig, ax = plt.subplots(figsize=(10, 10))
 
     wedges, texts, autotexts = ax.pie(
@@ -875,7 +780,6 @@ def graph_alone_household_pie(): #1인가구 비율
         pctdistance=0.85
     )
 
-    # 1인 가구 강조
     wedges[0].set_edgecolor('#D32F2F')
     wedges[0].set_linewidth(4)
     texts[0].set_fontsize(16)
@@ -883,23 +787,19 @@ def graph_alone_household_pie(): #1인가구 비율
     autotexts[0].set_color('white')
     autotexts[0].set_fontsize(16)
 
-    # 다인 가구 스타일
     autotexts[1].set_fontsize(14)
     autotexts[1].set_fontweight('bold')
 
-    # 제목
     plt.title('1인 가구 비중 (2025)', fontsize=25, fontweight='bold', pad=20)
-
     plt.tight_layout()
     
     return fig, data_df, total_household, alone_household, alone_ratio
 
 def st_columns_household():
-    # 데이터 로드
     fig_line, data_df_line = graph_alone_household()
     fig_pie, data_df_pie, total_household, alone_household, alone_ratio = graph_alone_household_pie()
     
-    # 컨테이너 1: 그래프
+    #그래프
     cont1 = st.container()
     with cont1:
         col1, col2 = st.columns([5, 2.445])
@@ -910,14 +810,14 @@ def st_columns_household():
             st.pyplot(fig_pie)
             plt.close(fig_pie)
     
-    # 컨테이너 2: 출처
+    #출처
     cont2 = st.container()
     with cont2:
         st.caption("데이터 출처 : [국가데이터처](https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1BZ0505&conn_path=I2)「장래가구추계」, 2052, 2025.11.14, 가구주의 연령/가구유형별 추계가구_시도")
         st.caption("데이터 출처 : [국가데이터처](https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1BZ0502&conn_path=I2)「장래가구추계」, 2052, 2025.11.14, 가구주의 연령/가구유형별 추계가구-전국")
 
         
-    # 컨테이너 3: 설명
+    #설명
     cont3 = st.container()
     with cont3:
         col1, col2 = st.columns([5, 2.445])
