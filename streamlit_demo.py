@@ -464,7 +464,7 @@ def graph_population_growrate() : #인구성장률
 
     col1, col2 = st.columns([1.3,3])
     with col1 :
-        st.subheader("연도별 인구 수 변화")
+        st.subheader("연도별 인구성장률 변화")
         st.markdown("<h6>1960 ~ 2025</h6>",unsafe_allow_html=True)
         st.markdown("<h5>그래프 설명</h5>", unsafe_allow_html=True)
         st.markdown("**인구성장률은 전년 대비 추계인구의 증감률이다.**<br>2021년 인구성장률 -0.13을 기록하며 마이너스 성장대로 전환했다.", unsafe_allow_html=True)
