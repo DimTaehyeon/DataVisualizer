@@ -7,7 +7,10 @@ import matplotlib.font_manager as fm
 import matplotlib.ticker as ticker
 from matplotlib import rc
 
-base_dir = os.path.dirname(__file__)
+base_dir = os.path.dirname(os.path.abspath(__file__))
+
+# 2. 하위 폴더 'source'의 경로 생성
+source_dir = os.path.join(base_dir, 'source')
 
 def apply_web_font(): #Streamlit 웹에 Pretendard family 웹 폰트 적용
     #Pretendard @font-face CSS 구문
