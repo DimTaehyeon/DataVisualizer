@@ -7,11 +7,6 @@ import matplotlib.font_manager as fm
 import matplotlib.ticker as ticker
 from matplotlib import rc
 
-base_dir = os.path.dirname(os.path.abspath(__file__))
-
-# 2. 하위 폴더 'source'의 경로 생성
-source_dir = os.path.join(base_dir, 'source')
-
 def apply_web_font(): #Streamlit 웹에 Pretendard family 웹 폰트 적용
     #Pretendard @font-face CSS 구문
     comp_css = """
@@ -131,24 +126,21 @@ def apply_web_font(): #Streamlit 웹에 Pretendard family 웹 폰트 적용
     """
     st.markdown(comp_css, unsafe_allow_html=True)
 
-def setting_matplotlib_font(): #Matplotlib 차트 이미지에 로컬 Pretendard 폰트 적용
-    font_filename = 'Pretendard-Bold.ttf' 
-    
-    #폰트 파일의 전체 경로 (base_dir와 폰트 파일 이름을 합침)
-    font_path = os.path.join(base_dir, font_filename)
+script_dir = os.path.dirname(__file__)
+base_dir = os.path.join(script_dir, 'source')  #CSV 파일용
 
-    #폰트가 확인
+def setting_matplotlib_font():
+    font_filename = 'Pretendard-Bold.ttf'
+    font_path = os.path.join(script_dir, font_filename)  #폰트는 메인 폴더
+    
     if not os.path.exists(font_path):
-        #디버깅용
-        print(f"현재 폴더 경로: {base_dir}")
+        print(f"현재 폴더 경로: {script_dir}")
         print(f"찾으려는 폰트 경로: {font_path}")
         raise FileNotFoundError(f"폰트 파일을 찾을 수 없습니다: {font_path}")
     
     plt.rcParams['font.family'] = 'Pretendard'
     plt.rcParams['axes.unicode_minus'] = False 
-    
-    print("폰트 설정 완료.") #디버깅용
-    
+    print("폰트 설정 완료.") #streamlit log 디버깅용
     fm.fontManager.addfont(font_path)
 
 def graph_population() : #총인구수 그래프
